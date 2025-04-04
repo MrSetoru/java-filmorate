@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate;
 
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
@@ -27,13 +28,12 @@ class FilmorateApplicationTests {
     @Test
     void testValidFilm() {
         Film film = new Film();
-        film.setId(1L);
         film.setName("Test Film");
         film.setDescription("Test Description");
         film.setReleaseDate(LocalDate.of(2000, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
-        film.setDuration(Duration.ofMinutes(120));
+        film.setDuration(120);
 
-        Set violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertTrue(violations.isEmpty(), "Должна быть пустая коллекция нарушений для валидного фильма");
     }
 
@@ -43,7 +43,7 @@ class FilmorateApplicationTests {
         film.setName("  ");
         film.setDescription("Test Description");
         film.setReleaseDate(LocalDate.of(2000, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
-        film.setDuration(Duration.ofMinutes(120));
+        film.setDuration(120);
 
         Set violations = validator.validate(film);
         assertFalse(violations.isEmpty(), "Должны быть нарушения для фильма с пустым именем");
@@ -53,29 +53,34 @@ class FilmorateApplicationTests {
     @Test
     void testFilmNameNull() {
         Film film = new Film();
-        film.setId(1L);
         film.setName(null);
         film.setDescription("Test Description");
         film.setReleaseDate(LocalDate.of(2000, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
-        film.setDuration(Duration.ofMinutes(120));
+        film.setDuration(120);
 
-        Set violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty(), "Должны быть нарушения для фильма с null именем");
         assertEquals(1, violations.size(), "Должно быть одно нарушение");
+        ConstraintViolation<Film> violation = violations.iterator().next();
+        assertEquals("Название не может быть пустым", violation.getMessage());
+        assertEquals("name", violation.getPropertyPath().toString());
     }
 
     @Test
     void testFilmDescriptionLong() {
         Film film = new Film();
-        film.setId(1L);
         film.setName("Test Film");
-        film.setDescription("Very long description ".repeat(20));
+        film.setDescription("Very long description ".repeat(20)); // Очень длинное описание
         film.setReleaseDate(LocalDate.of(2000, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
-        film.setDuration(Duration.ofMinutes(120));
+        film.setDuration(120);
 
-        Set violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty(), "Должны быть нарушения для фильма с длинным описанием");
         assertEquals(1, violations.size(), "Должно быть одно нарушение");
+
+        ConstraintViolation<Film> violation = violations.iterator().next();
+        assertEquals("Описание не должно превышать 200 символов", violation.getMessage());
+        assertEquals("description", violation.getPropertyPath().toString());
     }
 
     @Test
@@ -85,7 +90,7 @@ class FilmorateApplicationTests {
         film.setName("Test Film");
         film.setDescription("Test Description");
         film.setReleaseDate(LocalDate.of(1800, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
-        film.setDuration(Duration.ofMinutes(120));
+        film.setDuration(120);
 
         Set violations = validator.validate(film);
         assertFalse(violations.isEmpty(), "Должны быть нарушения для фильма с неверной датой релиза");
@@ -99,7 +104,7 @@ class FilmorateApplicationTests {
         film.setName("Test Film");
         film.setDescription("Test Description");
         film.setReleaseDate(LocalDate.of(2000, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
-        film.setDuration(Duration.ofMinutes(-10));
+        film.setDuration(-10);
 
         Set violations = validator.validate(film);
         assertFalse(violations.isEmpty(), "Должны быть нарушения для фильма с отрицательной длительностью");
@@ -113,7 +118,7 @@ class FilmorateApplicationTests {
         film.setName("Test Film");
         film.setDescription("Test Description");
         film.setReleaseDate(LocalDate.of(2000, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
-        film.setDuration(Duration.ofMinutes(0));
+        film.setDuration(0);
 
         Set violations = validator.validate(film);
         assertFalse(violations.isEmpty(), "Должны быть нарушения для фильма с нулевой длительностью");
@@ -203,7 +208,7 @@ class FilmorateApplicationTests {
         user.setEmail("test@example.com");
         user.setLogin("testLogin");
         user.setName("Test Name");
-        user.setBirthday(LocalDate.now().plusDays(1)); // Дата рождения в будущем
+        user.setBirthday(LocalDate.now().plusDays(1));
 
         Set violations = validator.validate(user);
         assertFalse(violations.isEmpty(), "Должны быть нарушения для пользователя с датой рождения в будущем");

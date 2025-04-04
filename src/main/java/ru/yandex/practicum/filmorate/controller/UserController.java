@@ -16,11 +16,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+
     private final Map<Long, User> users = new HashMap<>();
+    private Long nextId = 1L;
 
     @GetMapping
     public Collection<User> findAll() {
         log.info("Получен запрос на получение всех пользователей");
+        log.info("Отправлен список всех пользователей (количество: {})", users.size());
         return users.values();
     }
 
@@ -30,55 +33,30 @@ public class UserController {
         if (isEmailAlreadyRegistered(user.getEmail())) {
             throw new DuplicatedDataException("Этот email уже используется");
         }
-        user.setId(getNextId());
-        user.setEmail(user.getEmail());
-        user.setLogin(user.getLogin());
-        user.setName(user.getName());
-        user.setBirthday(user.getBirthday());
+        user.setId(nextId++);
         users.put(user.getId(), user);
         log.info("Пользователь успешно создан: {}", user);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
+        return ResponseEntity.ok(user);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity updateUser(@PathVariable Long id, @Valid @RequestBody User newUser) {
-        log.info("Получен запрос на обновление пользователя с id: {}, данные: {}", id, newUser);
-        User oldUser = users.get(id);
-        if (oldUser == null) {
-            log.warn("Пользователь с id {} не найден", id);
+    @PutMapping
+    public ResponseEntity updateUser(@Valid @RequestBody User newUser) {
+        log.info("Получен запрос на обновление пользователя с id: {}, данные: {}", newUser.getId(), newUser);
+        if (newUser.getId() == null) {
+            log.warn("Попытка обновления пользователя без указания id");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        if (!newUser.getEmail().equals(oldUser.getEmail()) && isEmailAlreadyRegistered(newUser.getEmail())) {
-            throw new DuplicatedDataException("Этот email уже используется");
+        User existingUser = users.get(newUser.getId());
+        if (!newUser.getId().equals(existingUser.getId())) {
+            log.warn("Попытка изменить id пользователя при обновлении.  Старый id: {}, новый id: {}", existingUser.getId(), newUser.getId());
+            return new ResponseEntity<>("Нельзя изменить id пользователя при обновлении.", HttpStatus.BAD_REQUEST);
         }
-        if (newUser.getEmail() != null) {
-            oldUser.setEmail(newUser.getEmail());
-        }
-        if (newUser.getLogin() != null) {
-            oldUser.setLogin(newUser.getLogin());
-        }
-        if (newUser.getName() != null) {
-            oldUser.setName(newUser.getName());
-        }
-        if (newUser.getBirthday() != null) {
-            oldUser.setBirthday(newUser.getBirthday());
-        }
-
-        users.put(id, oldUser);
-        log.info("Пользователь с id {} успешно обновлен: {}", id, oldUser);
-        return new ResponseEntity<>(oldUser, HttpStatus.OK);
+        users.put(newUser.getId(), newUser);
+        log.info("Пользователь с id {} успешно обновлен: {}", newUser.getId(), newUser);
+        return new ResponseEntity<User>(newUser, HttpStatus.OK);
     }
 
     private boolean isEmailAlreadyRegistered(String email) {
         return users.values().stream().anyMatch(u -> u.getEmail().equals(email));
-    }
-
-    private long getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
     }
 }
