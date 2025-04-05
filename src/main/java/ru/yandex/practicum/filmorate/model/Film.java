@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import ru.yandex.practicum.filmorate.validator.ReleaseDateConstraint;
 
-import java.time.Instant;
+import java.time.LocalDate;
 
 @Data
 @EqualsAndHashCode(of = {"name", "releaseDate", "duration"})
@@ -18,7 +18,7 @@ public class Film {
     @Size(max = 200, message = "Описание не должно превышать 200 символов")
     private String description;
     @ReleaseDateConstraint
-    private Instant releaseDate;
+    private LocalDate releaseDate;
     /**
      * Продолжительность фильма в минутах.
      */

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
@@ -44,7 +45,7 @@ public class FilmController {
         }
         if (!films.containsKey(newFilm.getId())) {
             log.warn("Фильм с id {} не найден", newFilm.getId());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            throw new NotFoundException("Фильм с id " + newFilm.getId() + " не найден.");
         }
         films.put(newFilm.getId(), newFilm);
         log.info("Фильм с id {} успешно обновлен: {}", newFilm.getId(), newFilm);
