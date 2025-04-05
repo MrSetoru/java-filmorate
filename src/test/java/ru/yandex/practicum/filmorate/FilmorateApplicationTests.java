@@ -28,9 +28,9 @@ class FilmorateApplicationTests {
     @Test
     void testValidFilm() {
         Film film = new Film();
-        film.setName("Test Film");
-        film.setDescription("Test Description");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
+        film.setName("Тестовый Фильм");
+        film.setDescription("Тестовое Описание");
+        film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(120);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -41,26 +41,31 @@ class FilmorateApplicationTests {
     void testFilmNameBlank() {
         Film film = new Film();
         film.setName("  ");
-        film.setDescription("Test Description");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
+        film.setDescription("Тестовое Описание");
+        film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(120);
 
-        Set violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty(), "Должны быть нарушения для фильма с пустым именем");
         assertEquals(1, violations.size(), "Должно быть одно нарушение");
+
+        ConstraintViolation<Film> violation = violations.iterator().next();
+        assertEquals("Название не может быть пустым", violation.getMessage());
+        assertEquals("name", violation.getPropertyPath().toString());
     }
 
     @Test
     void testFilmNameNull() {
         Film film = new Film();
         film.setName(null);
-        film.setDescription("Test Description");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
+        film.setDescription("Тестовое Описание");
+        film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(120);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty(), "Должны быть нарушения для фильма с null именем");
         assertEquals(1, violations.size(), "Должно быть одно нарушение");
+
         ConstraintViolation<Film> violation = violations.iterator().next();
         assertEquals("Название не может быть пустым", violation.getMessage());
         assertEquals("name", violation.getPropertyPath().toString());
@@ -69,9 +74,9 @@ class FilmorateApplicationTests {
     @Test
     void testFilmDescriptionLong() {
         Film film = new Film();
-        film.setName("Test Film");
-        film.setDescription("Very long description ".repeat(20)); // Очень длинное описание
-        film.setReleaseDate(LocalDate.of(2000, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
+        film.setName("Тестовый Фильм");
+        film.setDescription("Очень длинное описание".repeat(20));
+        film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(120);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -86,38 +91,44 @@ class FilmorateApplicationTests {
     @Test
     void testFilmReleaseDateInvalid() {
         Film film = new Film();
-        film.setId(1L);
-        film.setName("Test Film");
-        film.setDescription("Test Description");
-        film.setReleaseDate(LocalDate.of(1800, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
+        film.setName("Тестовый Фильм");
+        film.setDescription("Тестовое Описание");
+        film.setReleaseDate(LocalDate.of(1800, 1, 1));
         film.setDuration(120);
 
-        Set violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty(), "Должны быть нарушения для фильма с неверной датой релиза");
         assertEquals(1, violations.size(), "Должно быть одно нарушение");
+
+        ConstraintViolation<Film> violation = violations.iterator().next();
+        assertEquals("Дата релиза должна быть не раньше 28 декабря 1895 года", violation.getMessage());
+        assertEquals("releaseDate", violation.getPropertyPath().toString());
     }
 
     @Test
     void testFilmDurationNegative() {
         Film film = new Film();
-        film.setId(1L);
-        film.setName("Test Film");
-        film.setDescription("Test Description");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
+        film.setName("Тестовый Фильм");
+        film.setDescription("Тестовое Описание");
+        film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(-10);
 
-        Set violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty(), "Должны быть нарушения для фильма с отрицательной длительностью");
         assertEquals(1, violations.size(), "Должно быть одно нарушение");
+
+        ConstraintViolation<Film> violation = violations.iterator().next();
+        assertEquals("Продолжительность фильма должна быть положительной", violation.getMessage());
+        assertEquals("duration", violation.getPropertyPath().toString());
     }
 
     @Test
     void testFilmDurationZero() {
         Film film = new Film();
         film.setId(1L);
-        film.setName("Test Film");
-        film.setDescription("Test Description");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1).atStartOfDay(ZoneId.of("UTC")).toInstant());
+        film.setName("Тестовый Фильм");
+        film.setDescription("Тестовое Описание");
+        film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(0);
 
         Set violations = validator.validate(film);
