@@ -2,53 +2,90 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/films")
+@Slf4j
 public class FilmController {
 
-    private final Map<Long, Film> films = new HashMap<>();
-    private Long nextId = 1L;
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     @GetMapping
-    public Collection<Film> findAll() {
+    public ResponseEntity<Collection<Film>> getAllFilms() {
         log.info("Получен запрос на получение всех фильмов");
-        log.info("Отправлен список всех фильмов (количество: {})", films.size());
-        return films.values();
+        return new ResponseEntity<>(filmService.getAllFilms(), HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity create(@Valid @RequestBody Film film) {
-        log.info("Получен запрос на добавление фильма: {}", film);
-        film.setId(nextId++);
-        films.put(film.getId(), film);
-        log.info("Фильм успешно добавлен: {}", film);
-        return ResponseEntity.ok(film);
+    public ResponseEntity<Film> createFilm(@Valid @RequestBody Film film) {
+        log.info("Получен запрос на создание фильма: {}", film);
+        return new ResponseEntity<>(filmService.createFilm(film), HttpStatus.CREATED);
     }
 
-    @PutMapping()
-    public ResponseEntity updateFilm(@Valid @RequestBody Film newFilm) {
-        log.info("Получен запрос на обновление фильма с id: {}, данные: {}", newFilm.getId(), newFilm);
-        if (newFilm.getId() == null) {
-            log.warn("Попытка обновления фильма без указания id");
-            return new ResponseEntity<>("Id фильма не может быть пустым", HttpStatus.BAD_REQUEST);
+    @PutMapping
+    public ResponseEntity<Film> updateFilm(@Valid @RequestBody Film film) {
+        log.info("Получен запрос на обновление фильма: {}", film);
+        return new ResponseEntity<>(filmService.updateFilm(film), HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Film> getFilmById(@PathVariable Long id) {
+        log.info("Получен запрос на получение фильма с id: {}", id);
+        try {
+            Film film = filmService.getFilmById(id);
+            return new ResponseEntity<>(film, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Ошибка при получении фильма с id {}: {}", id, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        if (!films.containsKey(newFilm.getId())) {
-            log.warn("Фильм с id {} не найден", newFilm.getId());
-            throw new NotFoundException("Фильм с id " + newFilm.getId() + " не найден.");
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public ResponseEntity<Void> addLike(@PathVariable Long id, @PathVariable Long userId) {
+        log.info("Получен запрос на добавление лайка: filmId={}, userId={}", id, userId);
+        try {
+            filmService.addLike(id, userId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            log.error("Ошибка при добавлении лайка: filmId={}, userId={}. Ошибка: {}", id, userId, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        films.put(newFilm.getId(), newFilm);
-        log.info("Фильм с id {} успешно обновлен: {}", newFilm.getId(), newFilm);
-        return new ResponseEntity<Film>(newFilm, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public ResponseEntity<Void> removeLike(@PathVariable Long id, @PathVariable Long userId) {
+        log.info("Получен запрос на удаление лайка: filmId={}, userId={}", id, userId);
+        try {
+            filmService.removeLike(id, userId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            log.error("Ошибка при удалении лайка: filmId={}, userId={}. Ошибка: {}", id, userId, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<Collection<Film>> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
+        log.info("Получен запрос на получение {} популярных фильмов", count);
+        try {
+            Collection<Film> popularFilms = filmService.getPopularFilms(count);
+            return new ResponseEntity<>(popularFilms, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Ошибка при получении популярных фильмов: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); //  более общий случай
+        }
     }
 }
