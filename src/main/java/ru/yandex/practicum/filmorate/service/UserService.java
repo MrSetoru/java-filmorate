@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -35,19 +36,23 @@ public class UserService {
     }
 
     public User getUserById(Long id) {
-        return userStorage.getUserById(id);
+        User user = userStorage.getUserById(id);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с ID " + id + " не найден");
+        }
+        return user;
     }
 
     public void addFriend(Long userId, Long friendId) {
         log.info("Запрос на добавление в друзья: userId={}, friendId={}", userId, friendId);
         User user = getUserById(userId);
-        User friend = getUserById(friendId); // Проверяем, что оба пользователя существуют
+        User friend = getUserById(friendId);
 
         user.getFriends().add(friendId);
-        friend.getFriends().add(userId); // Дружба взаимна
+        friend.getFriends().add(userId);
 
-        userStorage.updateUser(user);      // Сохраняем изменения в хранилище
-        userStorage.updateUser(friend);     // Сохраняем изменения в хранилище
+        userStorage.updateUser(user);
+        userStorage.updateUser(friend);
 
         log.info("Пользователи {} и {} теперь друзья", userId, friendId);
     }
@@ -55,13 +60,13 @@ public class UserService {
     public void removeFriend(Long userId, Long friendId) {
         log.info("Запрос на удаление из друзей: userId={}, friendId={}", userId, friendId);
         User user = getUserById(userId);
-        User friend = getUserById(friendId); // Проверяем, что оба пользователя существуют
+        User friend = getUserById(friendId);
 
         user.getFriends().remove(friendId);
         friend.getFriends().remove(userId);
 
-        userStorage.updateUser(user);      // Сохраняем изменения в хранилище
-        userStorage.updateUser(friend);     // Сохраняем изменения в хранилище
+        userStorage.updateUser(user);
+        userStorage.updateUser(friend);
 
         log.info("Пользователи {} и {} больше не друзья", userId, friendId);
     }
@@ -69,24 +74,23 @@ public class UserService {
     public Collection<User> getCommonFriends(Long userId, Long otherUserId) {
         log.info("Запрос на получение общих друзей: userId={}, otherUserId={}", userId, otherUserId);
         User user = getUserById(userId);
-        User otherUser = getUserById(otherUserId); // Проверяем, что оба пользователя существуют
+        User otherUser = getUserById(otherUserId);
 
         Set<Long> userFriends = new HashSet<>(user.getFriends());
         Set<Long> otherUserFriends = new HashSet<>(otherUser.getFriends());
 
-        userFriends.retainAll(otherUserFriends); // Оставляем только общих друзей
+        userFriends.retainAll(otherUserFriends);
 
-        // Получаем объекты User по ID общих друзей
         return userFriends.stream()
-                .map(userStorage::getUserById)
+                .map(this::getUserById)
                 .collect(Collectors.toList());
     }
 
     public Collection<User> getFriends(Long id) {
         log.info("Запрос на получение друзей пользователя с ID: {}", id);
-        User user = getUserById(id); // Проверяем, что пользователь существует
+        User user = getUserById(id);
         return user.getFriends().stream()
-                .map(userStorage::getUserById)
+                .map(this::getUserById)
                 .collect(Collectors.toList());
     }
 }
