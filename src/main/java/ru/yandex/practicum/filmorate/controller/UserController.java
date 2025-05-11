@@ -26,13 +26,8 @@ public class UserController {
     @GetMapping
     public ResponseEntity<Collection<User>> getAllUsers() {
         log.info("Получен запрос на получение всех пользователей");
-        try {
-            Collection<User> users = userService.getAllUsers();
-            return new ResponseEntity<>(users, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("Ошибка при получении всех пользователей: {}", e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        Collection<User> users = userService.getAllUsers();
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
     @PostMapping

@@ -44,13 +44,8 @@ public class FilmController {
     @GetMapping("/{id}")
     public ResponseEntity<Film> getFilmById(@PathVariable Long id) {
         log.info("Получен запрос на получение фильма с id: {}", id);
-        try {
-            Film film = filmService.getFilmById(id);
-            return new ResponseEntity<>(film, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("Ошибка при получении фильма с id {}: {}", id, e.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        Film film = filmService.getFilmById(id);
+        return new ResponseEntity<>(film, HttpStatus.OK);
     }
 
     @PutMapping("/{id}/like/{userId}")
