@@ -18,7 +18,7 @@ public class InMemoryUserStorage implements UserStorage {
     private Long nextId = 1L;
 
     @Override
-    public Collection<User> findAll() {
+    public Collection<User> findAllUsers() {
         log.info("Получен запрос на получение всех пользователей (из хранилища)");
         return users.values();
     }
@@ -65,6 +65,11 @@ public class InMemoryUserStorage implements UserStorage {
             throw new NotFoundException("Пользователь с id " + id + " не найден.");
         }
         return users.get(id);
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+
     }
 
     private boolean isEmailAlreadyRegistered(String email) {

@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -17,7 +18,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     private Long nextId = 1L;
 
     @Override
-    public Collection<Film> findAll() {
+    public Collection<Film> findAllFilms() {
         log.info("Получен запрос на получение всех фильмов (из хранилища)");
         return films.values();
     }
@@ -55,5 +56,25 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new NotFoundException("Фильм с id " + id + " не найден.");
         }
         return films.get(id);
+    }
+
+    @Override
+    public void deleteFilm(Long id) {
+
+    }
+
+    @Override
+    public Collection<Film> getPopularFilms(int count) {
+        return List.of();
+    }
+
+    @Override
+    public void addLike(Long filmId, Long userId) {
+
+    }
+
+    @Override
+    public void removeLike(Long filmId, Long userId) {
+
     }
 }

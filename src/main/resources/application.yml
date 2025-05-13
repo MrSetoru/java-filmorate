@@ -1,1 +1,14 @@
-logging.level.org.zalando.logbook: TRACE
+logging:
+  level:
+    org.zalando.logbook: TRACE
+
+spring:
+  datasource:
+    url: jdbc:h2:file:./db/filmorate?nolock=1;DB_CLOSE_DELAY=-1;AUTO_RECONNECT=TRUE;MODE=PostgreSQL
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+    sql:
+      init:
+        mode: always
+
