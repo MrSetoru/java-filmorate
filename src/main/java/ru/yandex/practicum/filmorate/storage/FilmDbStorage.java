@@ -2,10 +2,12 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
@@ -17,15 +19,23 @@ import java.sql.PreparedStatement;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @Qualifier("filmDbStorage")
-@RequiredArgsConstructor
 @Slf4j
 @Primary
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    @Autowired
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+    }
 
     private final RowMapper<Film> filmRowMapper = (rs, rowNum) -> {
         Film film = new Film();
@@ -129,8 +139,12 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN likes l ON f.film_id = l.film_id " +
                 "GROUP BY f.film_id " +
                 "ORDER BY COUNT(l.user_id) DESC " +
-                "LIMIT ?";
-        return jdbcTemplate.query(sql, filmRowMapper, count);
+                "LIMIT :count";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("count", count);
+
+        return namedParameterJdbcTemplate.query(sql, params, filmRowMapper);
     }
 
     private void saveFilmGenres(Film film) {
@@ -168,5 +182,4 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sql, filmId, userId);
         log.info("Пользователь {} удалил лайк с фильма {}", userId, filmId);
     }
-
 }
