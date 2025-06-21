@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,11 +15,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Qualifier("filmDbStorage")
