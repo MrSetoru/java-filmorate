@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -47,7 +48,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
         log.info("Получен запрос на получение пользователя с ID: {}", id);
             User user = userService.getUserById(id);
             return new ResponseEntity<>(user, HttpStatus.OK);
@@ -79,5 +80,13 @@ public class UserController {
         log.info("Получен запрос на получение общих друзей: userId={}, otherId={}", id, otherId);
             Collection<User> commonFriends = userService.getCommonFriends(id, otherId);
             return new ResponseEntity<>(commonFriends, HttpStatus.OK);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleUserNotFoundException(final UserNotFoundException e) {
+        return new ResponseEntity<>(
+                Map.of("error", e.getMessage()),
+                HttpStatus.NOT_FOUND
+        );
     }
 }

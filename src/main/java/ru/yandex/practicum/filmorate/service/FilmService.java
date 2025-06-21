@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -26,7 +25,7 @@ public class FilmService {
     }
 
     public Collection<Film> getAllFilms() {
-        return filmStorage.findAll();
+        return filmStorage.findAllFilms();
     }
 
     public Film createFilm(Film film) {
@@ -53,8 +52,7 @@ public class FilmService {
             throw new NotFoundException("Пользователь с ID " + userId + " не найден.");
         }
 
-        film.getLikes().add(userId);
-        filmStorage.updateFilm(film);
+        filmStorage.addLike(filmId, userId);
         log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
     }
 
@@ -71,20 +69,12 @@ public class FilmService {
             throw new NotFoundException("Пользователь с ID " + userId + " не найден.");
         }
 
-        if (!film.getLikes().contains(userId)) {
-            throw new NotFoundException("Лайк от пользователя " + userId + " к фильму " + filmId + " не найден.");
-        }
-
-        film.getLikes().remove(userId);
-        filmStorage.updateFilm(film);
+        filmStorage.removeLike(filmId, userId);
         log.info("Пользователь {} удалил лайк у фильма {}", userId, filmId);
     }
 
     public Collection<Film> getPopularFilms(int count) {
         log.info("Запрос на получение {} популярных фильмов", count);
-        return filmStorage.findAll().stream()
-                .sorted((film1, film2) -> Long.compare(film2.getLikes().size(), film1.getLikes().size())) // Сортируем по количеству лайков
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.getPopularFilms(count);
     }
 }

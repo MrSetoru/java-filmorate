@@ -49,14 +49,14 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public ResponseEntity<?> addLike(@PathVariable Long id, @PathVariable Long userId) {
+    public ResponseEntity<Void> addLike(@PathVariable Long id, @PathVariable Long userId) {
         log.info("Получен запрос на добавление лайка: filmId={}, userId={}", id, userId);
         filmService.addLike(id, userId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public ResponseEntity<?> removeLike(@PathVariable Long id, @PathVariable Long userId) {
+    public ResponseEntity<Void> removeLike(@PathVariable Long id, @PathVariable Long userId) {
         log.info("Получен запрос на удаление лайка: filmId={}, userId={}", id, userId);
         filmService.removeLike(id, userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -69,4 +69,6 @@ public class FilmController {
         Collection<Film> popularFilms = filmService.getPopularFilms(count);
         return new ResponseEntity<>(popularFilms, HttpStatus.OK);
     }
+
+
 }
