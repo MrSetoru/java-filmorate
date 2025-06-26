@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exception.MpaNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
@@ -64,7 +66,7 @@ public class FilmDbStorage implements FilmStorage {
             KeyHolder keyHolder = new GeneratedKeyHolder();
 
             jdbcTemplate.update(connection -> {
-                PreparedStatement ps = connection.prepareStatement(sql, new String[]{"film_id"});
+                PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
                 ps.setString(1, film.getName());
                 ps.setString(2, film.getDescription());
                 ps.setDate(3, Date.valueOf(film.getReleaseDate()));
@@ -81,9 +83,8 @@ public class FilmDbStorage implements FilmStorage {
             }
 
             return film;
-        } catch (Exception e) {
-            log.error("Ошибка при создании фильма", e);
-            throw new RuntimeException("Ошибка при создании фильма", e);
+        } catch (DataIntegrityViolationException e) {
+            throw new MpaNotFoundException("Mpa with id " + film.getMpa().getId() + " not found");
         }
     }
 
@@ -154,7 +155,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void saveFilmGenres(Film film) {
-        String sql = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
+        String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
         List<Object[]> batchArgs = new ArrayList<>();
         for (Genre genre : film.getGenres()) {
             batchArgs.add(new Object[]{film.getId(), genre.getId()});
@@ -163,7 +164,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void updateFilmGenres(Film film) {
-        String deleteSql = "DELETE FROM film_genre WHERE film_id = ?";
+        String deleteSql = "DELETE FROM film_genres WHERE film_id = ?";
         jdbcTemplate.update(deleteSql, film.getId());
 
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {

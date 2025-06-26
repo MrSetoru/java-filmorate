@@ -15,13 +15,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException e) {
         Map<String, String> errorResponse = Map.of("error", e.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND); // 404
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Map<String, String>> handleNotFoundException(NotFoundException e) {
         Map<String, String> errorResponse = Map.of("error", e.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND); // 404
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(MpaNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleMpaNotFoundException(MpaNotFoundException e) {
+        Map<String, String> errorResponse = Map.of("error", e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
