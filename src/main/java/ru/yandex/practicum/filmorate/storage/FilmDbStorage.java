@@ -60,6 +60,16 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
+        long mpaId = film.getMpa().getId();
+
+        String checkMpaSql = "SELECT COUNT(*) FROM motion_picture_association WHERE mpa_id = ?";
+        Integer mpaCount = jdbcTemplate.queryForObject(checkMpaSql, Integer.class, mpaId);
+
+        if (mpaCount == null || mpaCount == 0) {
+            log.error("Mpa with id {} not found", mpaId);
+            throw new MpaNotFoundException("Mpa with id " + mpaId + " not found");
+        }
+
         try {
             String sql = "INSERT INTO films (name, description, release_date, duration, mpa_id) VALUES (?, ?, ?, ?, ?)";
 
@@ -71,7 +81,7 @@ public class FilmDbStorage implements FilmStorage {
                 ps.setString(2, film.getDescription());
                 ps.setDate(3, Date.valueOf(film.getReleaseDate()));
                 ps.setInt(4, film.getDuration());
-                ps.setLong(5, film.getMpa().getId());
+                ps.setLong(5, mpaId);
                 return ps;
             }, keyHolder);
 
@@ -84,7 +94,8 @@ public class FilmDbStorage implements FilmStorage {
 
             return film;
         } catch (DataIntegrityViolationException e) {
-            throw new MpaNotFoundException("Mpa with id " + film.getMpa().getId() + " not found");
+            throw new RuntimeException("Ошибка при создании фильма (после проверки MPA).  " +
+                    "Возможно, нарушены другие ограничения целостности.", e);
         }
     }
 

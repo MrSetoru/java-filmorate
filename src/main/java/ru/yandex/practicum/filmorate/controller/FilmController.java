@@ -31,14 +31,8 @@ public class FilmController {
 
     @PostMapping
     public ResponseEntity<Film> createFilm(@Valid @RequestBody Film film) {
-        log.info("Получен запрос на создание фильма: {}", film);
-        try {
-            Film createdFilm = filmService.createFilm(film);
-            return new ResponseEntity<>(createdFilm, HttpStatus.CREATED);
-        } catch (Exception e) {
-            log.error("Ошибка при создании фильма", e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        Film createdFilm = filmService.createFilm(film);
+        return new ResponseEntity<>(createdFilm, HttpStatus.CREATED);
     }
 
     @PutMapping
