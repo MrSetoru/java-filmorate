@@ -45,6 +45,7 @@ public class FilmController {
     public ResponseEntity<Film> getFilmById(@PathVariable Long id) {
         log.info("Получен запрос на получение фильма с id: {}", id);
         Film film = filmService.getFilmById(id);
+        log.info("FilmService: Фильм с id {} получен: {}", id, film);
         return new ResponseEntity<>(film, HttpStatus.OK);
     }
 

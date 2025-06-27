@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-//import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,7 +24,6 @@ public class Film {
     @Min(value = 1, message = "Продолжительность фильма должна быть положительной")
     private int duration;
     private Set<Long> likes = new HashSet<>();
-    //@NotNull(message = "Рейтинг MPA не может быть пустым")
     private MpaRating mpa;
     private Set<Genre> genres = new HashSet<>();
 }

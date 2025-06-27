@@ -19,7 +19,7 @@ public class GenreDbStorage implements GenreStorage {
 
     @Override
     public Optional<Genre> getGenreById(Long id) {
-        String sql = "SELECT genre_id, name FROM genres WHERE genre_id = ?";
+        String sql = "SELECT genre_id, genre_name FROM genres WHERE genre_id = ?";
         List<Genre> genres = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToGenre(rs), id);
 
         if (genres.isEmpty()) {
@@ -31,14 +31,14 @@ public class GenreDbStorage implements GenreStorage {
 
     @Override
     public Collection<Genre> getAllGenres() {
-        String sql = "SELECT genre_id, name FROM genres";
+        String sql = "SELECT genre_id, genre_name FROM genres";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToGenre(rs));
     }
 
     private Genre mapRowToGenre(ResultSet rs) throws SQLException {
         Genre genre = new Genre();
         genre.setId(rs.getLong("genre_id"));
-        genre.setName(rs.getString("name"));
+        genre.setName(rs.getString("genre_name"));
         return genre;
     }
 }

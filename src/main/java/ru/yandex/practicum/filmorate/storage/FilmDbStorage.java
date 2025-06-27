@@ -144,9 +144,10 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilmById(Long id) {
-        String sql = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, " +
-                "g.genre_id, g.genre_name " +  // Получаем информацию о жанрах
+        String sql = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.mpa_name, " +
+                "g.genre_id, g.genre_name " +
                 "FROM films AS f " +
+                "LEFT JOIN motion_picture_association AS m ON f.mpa_id = m.mpa_id " + // Добавляем JOIN
                 "LEFT JOIN film_genres AS fg ON f.id = fg.film_id " +
                 "LEFT JOIN genres AS g ON fg.genre_id = g.genre_id " +
                 "WHERE f.id = ?";
@@ -169,6 +170,7 @@ public class FilmDbStorage implements FilmStorage {
 
                     MpaRating mpaRating = new MpaRating();
                     mpaRating.setId(rs.getLong("mpa_id"));
+                    mpaRating.setName(rs.getString("mpa_name"));
                     currentFilm.setMpa(mpaRating);
                     currentFilm.setGenres(new HashSet<>());
                 }

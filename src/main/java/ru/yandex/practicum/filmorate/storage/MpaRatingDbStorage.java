@@ -19,21 +19,21 @@ public class MpaRatingDbStorage implements MpaRatingStorage {
 
     @Override
     public Optional<MpaRating> getMpaRatingById(Long id) {
-        String sql = "SELECT mpa_id, name FROM mpa WHERE mpa_id = ?";
+        String sql = "SELECT mpa_id, mpa_name FROM motion_picture_association WHERE mpa_id = ?";
         List<MpaRating> mpaRatings = jdbcTemplate.query(sql, this::mapRowToMpaRating, id);
         return mpaRatings.isEmpty() ? Optional.empty() : Optional.of(mpaRatings.get(0));
     }
 
     @Override
     public Collection<MpaRating> getAllMpaRatings() {
-        String sql = "SELECT mpa_id, name FROM mpa";
+        String sql = "SELECT mpa_id, mpa_name FROM motion_picture_association";
         return jdbcTemplate.query(sql, this::mapRowToMpaRating);
     }
 
     private MpaRating mapRowToMpaRating(ResultSet rs, int rowNum) throws SQLException {
         MpaRating mpaRating = new MpaRating();
         mpaRating.setId(rs.getLong("mpa_id"));
-        mpaRating.setName(rs.getString("name"));
+        mpaRating.setName(rs.getString("mpa_name"));
         return mpaRating;
     }
 }
