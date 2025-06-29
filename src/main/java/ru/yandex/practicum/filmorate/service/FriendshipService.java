@@ -2,9 +2,9 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FriendshipService {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final FriendshipStorage friendshipStorage;
     private final UserService userService;
 
     public void addFriend(Long userId, Long friendId) {
@@ -24,8 +24,7 @@ public class FriendshipService {
         userService.getUserById(userId);
         userService.getUserById(friendId);
 
-        String sql = "INSERT INTO friends (user_id, friend_id) VALUES (?, ?)";
-        jdbcTemplate.update(sql, userId, friendId);
+        friendshipStorage.addFriend(userId, friendId);
 
         log.info("Пользователи {} и {} теперь друзья", userId, friendId);
     }
@@ -36,8 +35,7 @@ public class FriendshipService {
         userService.getUserById(userId);
         userService.getUserById(friendId);
 
-        String sql = "DELETE FROM friends WHERE user_id = ? AND friend_id = ?";
-        jdbcTemplate.update(sql, userId, friendId);
+        friendshipStorage.removeFriend(userId, friendId);
 
         log.info("Пользователи {} и {} больше не друзья", userId, friendId);
     }
@@ -48,12 +46,7 @@ public class FriendshipService {
         userService.getUserById(userId);
         userService.getUserById(otherUserId);
 
-        String sql = "SELECT f1.friend_id " +
-                "FROM friends f1 " +
-                "INNER JOIN friends f2 ON f1.friend_id = f2.friend_id " +
-                "WHERE f1.user_id = ? AND f2.user_id = ?";
-
-        List<Long> commonFriendIds = jdbcTemplate.queryForList(sql, Long.class, userId, otherUserId);
+        List<Long> commonFriendIds = friendshipStorage.getCommonFriendIds(userId, otherUserId);
 
         return commonFriendIds.stream()
                 .map(userService::getUserById)
@@ -65,9 +58,7 @@ public class FriendshipService {
 
         userService.getUserById(userId);
 
-        String sql = "SELECT friend_id FROM friends WHERE user_id = ?";
-
-        List<Long> friendIds = jdbcTemplate.queryForList(sql, Long.class, userId);
+        List<Long> friendIds = friendshipStorage.getFriendIds(userId);
 
         return friendIds.stream()
                 .map(userService::getUserById)
