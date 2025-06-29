@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FriendshipService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
@@ -18,10 +20,12 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final FriendshipService friendshipService;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, FriendshipService friendshipService) {
         this.userService = userService;
+        this.friendshipService = friendshipService;
     }
 
     @GetMapping
@@ -34,50 +38,57 @@ public class UserController {
     @PostMapping
     public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         log.info("Получен запрос на создание пользователя: {}", user);
-            User createdUser = userService.createUser(user);
-            return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
-
+        User createdUser = userService.createUser(user);
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
     @PutMapping
     public ResponseEntity<?> updateUser(@Valid @RequestBody User user) {
         log.info("Получен запрос на обновление пользователя: {}", user);
-            User updatedUser = userService.updateUser(user);
-            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+        User updatedUser = userService.updateUser(user);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
         log.info("Получен запрос на получение пользователя с ID: {}", id);
-            User user = userService.getUserById(id);
-            return new ResponseEntity<>(user, HttpStatus.OK);
+        User user = userService.getUserById(id);
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
     public ResponseEntity<Map<String, String>> addFriend(@PathVariable Long id, @PathVariable Long friendId) {
         log.info("Получен запрос на добавление в друзья: userId={}, friendId={}", id, friendId);
-            userService.addFriend(id, friendId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        friendshipService.addFriend(id, friendId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public ResponseEntity<?> removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
         log.info("Получен запрос на удаление из друзей: userId={}, friendId={}", id, friendId);
-            userService.removeFriend(id, friendId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        friendshipService.removeFriend(id, friendId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/{id}/friends")
     public ResponseEntity<?> getFriends(@PathVariable Long id) {
         log.info("Получен запрос на получение списка друзей пользователя с ID: {}", id);
-            Collection<User> friends = userService.getFriends(id);
-            return new ResponseEntity<>(friends, HttpStatus.OK);
+        Collection<User> friends = friendshipService.getFriends(id);
+        return new ResponseEntity<>(friends, HttpStatus.OK);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public ResponseEntity<Collection<User>> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
         log.info("Получен запрос на получение общих друзей: userId={}, otherId={}", id, otherId);
-            Collection<User> commonFriends = userService.getCommonFriends(id, otherId);
-            return new ResponseEntity<>(commonFriends, HttpStatus.OK);
+        Collection<User> commonFriends = friendshipService.getCommonFriends(id, otherId);
+        return new ResponseEntity<>(commonFriends, HttpStatus.OK);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleUserNotFoundException(final UserNotFoundException e) {
+        return new ResponseEntity<>(
+                Map.of("error", e.getMessage()),
+                HttpStatus.NOT_FOUND
+        );
     }
 }

@@ -15,16 +15,15 @@ import java.util.Set;
 @EqualsAndHashCode(of = {"name", "releaseDate", "duration"})
 public class Film {
     private Long id;
-    @NotBlank(message = "Название не может быть пустым")
+    @NotBlank(message = "Название не должно быть пустым")
     private String name;
     @Size(max = 200, message = "Описание не должно превышать 200 символов")
     private String description;
     @ReleaseDateConstraint
     private LocalDate releaseDate;
-    /**
-     * Продолжительность фильма в минутах.
-     */
     @Min(value = 1, message = "Продолжительность фильма должна быть положительной")
-    private long duration;
+    private int duration;
     private Set<Long> likes = new HashSet<>();
+    private MpaRating mpa;
+    private Set<Genre> genres = new HashSet<>();
 }
